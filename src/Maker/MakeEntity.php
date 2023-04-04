@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Maker;
+namespace FH\Bundle\MakerBundle\Maker;
 
 use ApiPlatform\Core\Annotation\ApiResource as LegacyApiResource;
 use ApiPlatform\Metadata\ApiResource;

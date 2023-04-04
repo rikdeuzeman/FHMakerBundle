@@ -1,0 +1,10 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    FH\Bundle\MakerBundle\Maker\MakeEntity:
+        arguments:
+            $doctrineHelper: '@maker.doctrine_helper'
+            $fileManager: '@maker.file_manager'
+            $entityClassGenerator: '@maker.entity_class_generator'
