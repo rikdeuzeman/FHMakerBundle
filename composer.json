@@ -1,0 +1,16 @@
+{
+    "minimum-stability": "RC",
+    "name": "freshheads/maker-bundle",
+    "type": "symfony-bundle",
+    "require": {
+        "php": ">=8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "FH\\Bundle\\MakerBundle\\": ""
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
