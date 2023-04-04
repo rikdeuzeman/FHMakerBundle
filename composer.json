@@ -3,7 +3,8 @@
     "name": "freshheads/maker-bundle",
     "type": "symfony-bundle",
     "require": {
-        "php": ">=8.1"
+        "php": ">=8.0",
+        "symfony/maker-bundle": "^1.44"
     },
     "autoload": {
         "psr-4": { "FH\\Bundle\\MakerBundle\\": "src/" }
