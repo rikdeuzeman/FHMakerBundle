@@ -3,8 +3,12 @@ services:
         autowire: true
         autoconfigure: true
 
+    FH\Bundle\MakerBundle\Doctrine\EntityClassGenerator:
+        $generator: '@maker.generator'
+        $doctrineHelper: '@maker.doctrine_helper'
+        
     FH\Bundle\MakerBundle\Maker\MakeEntity:
         arguments:
             $doctrineHelper: '@maker.doctrine_helper'
             $fileManager: '@maker.file_manager'
-            $entityClassGenerator: '@maker.entity_class_generator'
+            $entityClassGenerator: '@FH\Bundle\MakerBundle\Doctrine\EntityClassGenerator'

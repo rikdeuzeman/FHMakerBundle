@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace FH\Bundle\MakerBundle\Maker;
 
+use FH\Bundle\MakerBundle\Doctrine\EntityClassGenerator;
 use ApiPlatform\Core\Annotation\ApiResource as LegacyApiResource;
 use ApiPlatform\Metadata\ApiResource;
 use Doctrine\DBAL\Types\Type;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
 use Symfony\Bundle\MakerBundle\DependencyBuilder;
 use Symfony\Bundle\MakerBundle\Doctrine\DoctrineHelper;
-use Symfony\Bundle\MakerBundle\Doctrine\EntityClassGenerator;
 use Symfony\Bundle\MakerBundle\Doctrine\EntityRegenerator;
 use Symfony\Bundle\MakerBundle\Doctrine\EntityRelation;
 use Symfony\Bundle\MakerBundle\Doctrine\ORMDependencyBuilder;
@@ -153,7 +153,7 @@ final class MakeEntity extends AbstractMaker implements InputAwareMakerInterface
 
         $entityClassDetails = $generator->createClassNameDetails(
             $input->getArgument('name'),
-            ucfirst($input->getArgument('domain'))
+            EntityClassGenerator::DOMAIN_PATH . ucfirst($input->getArgument('domain'))
         );
 
         $classExists = class_exists($entityClassDetails->getFullName());
@@ -161,8 +161,6 @@ final class MakeEntity extends AbstractMaker implements InputAwareMakerInterface
             $entityPath = $this->entityClassGenerator->generateEntityClass(
                 $entityClassDetails,
                 $input->getOption('api-resource'),
-                false,
-                false,
             );
 
             $generator->writeChanges();
