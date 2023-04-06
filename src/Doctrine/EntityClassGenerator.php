@@ -22,21 +22,15 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 final class EntityClassGenerator
 {
-    public const DOMAIN_PATH = 'Domain\\';
-    public const INFRASTRUCTURE_PATH = 'Infrastructure\\';
-
     public function __construct(
         private Generator $generator,
         private DoctrineHelper $doctrineHelper,
     ) {
     }
 
-    public function generateEntityClass(ClassNameDetails $entityClassDetails, bool $apiResource): string
+    public function generateEntityClass(ClassNameDetails $entityClassDetails, bool $apiResource, bool $resolver, ?string $domain): string
     {
         $tableName = $this->doctrineHelper->getPotentialTableName($entityClassDetails->getFullName());
-
-        $domainPath = str_replace('App\\', '', substr($entityClassDetails->getFullName(), 0, -strlen($entityClassDetails->getShortName())));
-        $infrastructurePath = str_replace(self::DOMAIN_PATH, self::INFRASTRUCTURE_PATH, $domainPath);
 
         $useStatements = new UseStatementGenerator([
             ['Doctrine\\ORM\\Mapping' => 'ORM'],
@@ -58,15 +52,17 @@ final class EntityClassGenerator
             ]
         );
 
+        $repositoryNamespace = ($domain ? $domain . '\\' : '') . 'Repository\\';
+
         $repoInterfaceClassDetails = $this->generator->createClassNameDetails(
             $entityClassDetails->getRelativeName(),
-            $domainPath . 'Repository\\',
+            'Domain\\' . $repositoryNamespace,
             'RepositoryInterface'
         );
 
         $repoClassDetails = $this->generator->createClassNameDetails(
             $entityClassDetails->getRelativeName(),
-            $infrastructurePath . 'Repository\\',
+            'Infrastructure\\' . $repositoryNamespace,
             'Repository'
         );
 
@@ -80,6 +76,22 @@ final class EntityClassGenerator
             $entityClassDetails->getFullName(),
             $repoInterfaceClassDetails->getFullName(),
         );
+
+        if ($resolver) {
+            $repositoryNamespace = ($domain ? $domain . '\\' : '') . 'Resolver\\';
+
+            $resolverClassDetails = $this->generator->createClassNameDetails(
+                $entityClassDetails->getRelativeName(),
+                'Domain\\' . $repositoryNamespace,
+                'Resolver'
+            );
+
+            $this->generateResolverClass(
+                $resolverClassDetails->getFullName(),
+                $entityClassDetails->getFullName(),
+                $repoInterfaceClassDetails->getFullName(),
+            );
+        }
 
         return $entityPath;
     }
@@ -127,6 +139,28 @@ final class EntityClassGenerator
                 'use_statements' => $useStatements,
                 'entity_class_name' => $shortEntityClass,
                 'entity_alias' => $entityAlias,
+            ]
+        );
+    }
+
+    public function generateResolverClass(string $resolverClass, string $entityClass, string $repositoryInterfaceClass): void
+    {
+        $shortEntityClass = Str::getShortClassName($entityClass);
+        $entityAlias = strtolower($shortEntityClass[0]);
+        $shortInterfaceClass = Str::getShortClassName($repositoryInterfaceClass);
+
+        $useStatements = new UseStatementGenerator([
+            $repositoryInterfaceClass,
+        ]);
+
+        $this->generator->generateClass(
+            $resolverClass,
+            __DIR__ . '/../Resources/skeleton/doctrine/Resolver.tpl.php',
+            [
+                'use_statements' => $useStatements,
+                'entity_class_name' => $shortEntityClass,
+                'entity_alias' => $entityAlias,
+                'repository_interface_class_name' => $shortInterfaceClass,
             ]
         );
     }

@@ -88,6 +88,7 @@ final class MakeEntity extends AbstractMaker implements InputAwareMakerInterface
             ->addArgument('name', InputArgument::OPTIONAL, sprintf('Class name of the entity to create or update (e.g. <fg=yellow>%s</>)', Str::asClassName(Str::getRandomTerm())))
             ->addArgument('domain', InputArgument::OPTIONAL, sprintf('On which domain do you want to create the entity (e.g. <fg=yellow>%s</>)', Str::asClassName(Str::getRandomTerm())))
             ->addOption('api-resource', 'a', InputOption::VALUE_NONE, 'Mark this class as an API Platform resource (expose a CRUD API for it)')
+            ->addOption('resolver', null, InputOption::VALUE_NONE, 'Create a resolver for this entity')
             ->addOption('regenerate', null, InputOption::VALUE_NONE, 'Instead of adding new fields, simply generate the methods (e.g. getter/setter) for existing fields')
             ->addOption('overwrite', null, InputOption::VALUE_NONE, 'Overwrite any existing getter/setter methods')
         ;
@@ -137,6 +138,14 @@ final class MakeEntity extends AbstractMaker implements InputAwareMakerInterface
 
             $input->setOption('api-resource', $isApiResource);
         }
+
+        if (!$input->getOption('resolver')) {
+            $description = $command->getDefinition()->getOption('resolver')->getDescription();
+            $question = new ConfirmationQuestion($description, false);
+            $createResolver = $io->askQuestion($question);
+
+            $input->setOption('resolver', $createResolver);
+        }
     }
 
     public function generate(InputInterface $input, ConsoleStyle $io, Generator $generator): void
@@ -151,9 +160,14 @@ final class MakeEntity extends AbstractMaker implements InputAwareMakerInterface
             return;
         }
 
+        $domain = $input->getArgument('domain');
+        if (is_string($domain)) {
+            $domain = ucfirst($domain);
+        }
+
         $entityClassDetails = $generator->createClassNameDetails(
             $input->getArgument('name'),
-            EntityClassGenerator::DOMAIN_PATH . ucfirst($input->getArgument('domain'))
+            'Domain\\' . $domain
         );
 
         $classExists = class_exists($entityClassDetails->getFullName());
@@ -161,6 +175,8 @@ final class MakeEntity extends AbstractMaker implements InputAwareMakerInterface
             $entityPath = $this->entityClassGenerator->generateEntityClass(
                 $entityClassDetails,
                 $input->getOption('api-resource'),
+                $input->getOption('resolver'),
+                $domain,
             );
 
             $generator->writeChanges();
